@@ -1,14 +1,14 @@
 import React, { useState } from "react";
-import dayjs from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import weekOfYear from "dayjs/plugin/weekOfYear";
-import range from "lodash-es/range";
 import { Box, Typography } from "@mui/material";
-
-const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const todayObj = dayjs();
+import isBetween from "dayjs/plugin/isBetween";
 dayjs.extend(weekOfYear);
+dayjs.extend(isBetween);
+const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
 function App() {
-  const [dayObj, setDayObj] = useState(dayjs().locale("en"));
+  const [dayObj, setDayObj] = useState<Dayjs>(dayjs().locale("en"));
 
   const handlePrev = () => {
     setDayObj(dayObj.subtract(3, "month"));
@@ -17,120 +17,149 @@ function App() {
   const handleNext = () => {
     setDayObj(dayObj.add(3, "month"));
   };
-  const months = [];
+
+  const months: Dayjs[] = [];
   for (let i = 0; i < 3; i++) {
     months.push(dayObj.add(i, "month"));
   }
 
-  function customRange(start: number, end: number, step = 1) {
-    if (step === 0) {
-      throw new Error("Step cannot be zero.");
+  const taskArray = [
+    {
+      name: "BBQ",
+      startDate: "2023-10-10",
+      endDate: "2023-12-30",
+    },
+    {
+      name: "Work",
+      startDate: "2023-11-12",
+      endDate: "2023-11-18",
+    },
+    {
+      name: "Dishes",
+      startDate: "2024-01-14",
+      endDate: "2024-01-18",
+    },
+  ];
+
+  function calculateWeekNumbersForMonth(month: Dayjs) {
+    const weeks: number[] = [];
+    const firstDayOfMonth = dayjs(month).startOf("month");
+    const lastDayOfMonth = dayjs(month).endOf("month");
+
+    let currentWeekStartDate = firstDayOfMonth.startOf("week");
+
+    while (currentWeekStartDate.isBefore(lastDayOfMonth)) {
+      weeks.push(currentWeekStartDate.week());
+      currentWeekStartDate = currentWeekStartDate.add(1, "week");
     }
 
-    const result = [];
-    if (start < end) {
-      for (let i = start; i < end; i += step) {
-        result.push(i);
-      }
-    } else if (start > end) {
-      for (let i = start; i > end; i -= step) {
-        result.push(i);
-      }
-    }
-
-    return result;
+    return weeks;
   }
+
   return (
     <div className="calendar">
       <div className="header"></div>
       <div>
-        <h2>Quarter</h2>
         <div className="datetime">{dayObj.format("YYYY")}</div>
         <button type="button" className="nav nav--prev" onClick={handlePrev}>
           &lt;
         </button>
+        <h2>Quarter</h2>
         <button type="button" className="nav nav--prev" onClick={handleNext}>
           &gt;
         </button>
-
-        {months.map((month, index) => {
-          const thisYear = month.year();
-          const thisMonth = month.month();
-          const daysInMonth = month.daysInMonth();
-          const dayObjOf1 = dayjs(`${thisYear}-${thisMonth + 1}-1`);
-          const weekDayOf1 = (dayObjOf1.day() + 6) % 7;
-          const dayObjOfLast = dayjs(
-            `${thisYear}-${thisMonth + 1}-${daysInMonth}`
-          );
-          const weekDayOfLast = dayObjOfLast.day();
-          const weekNumberOf1 = dayObjOf1.week();
-          const weekNumberOfLast = dayObjOfLast.week(); // Week of the year for the last day of the month
-          return (
-            <Box key={index}>
-              <Typography
-                sx={{
-                  textAlign: "center",
-                }}
-              >
-                {month.format("MMMM")}
-              </Typography>
-              <Box></Box>
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(5, 1fr)",
-                }}
-              >
-                <Typography sx={{ textAlign: "center" }}>
-                  Week {weekNumberOf1} - {weekNumberOfLast}
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+          }}
+        >
+          {months.map((month, index) => {
+            const weeksInMonth = calculateWeekNumbersForMonth(month);
+            return (
+              <Box key={index}>
+                <Typography
+                  sx={{
+                    textAlign: "center",
+                    border: "1px solid black",
+                  }}
+                >
+                  {month.format("MMMM")}
                 </Typography>
+                <Box
+                  sx={{
+                    display: "flex",
+                  }}
+                >
+                  {weeksInMonth.map((weekNumber) => {
+                    const currentWeekStartDate = dayjs(month)
+                      .week(weekNumber)
+                      .startOf("week");
+                    return (
+                      <Box sx={{ flexGrow: "1" }}>
+                        <Box>
+                          <Typography
+                            sx={{
+                              border: "1px solid black",
+                              textAlign: "center",
+                            }}
+                            key={weekNumber}
+                          >
+                            {weekNumber}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          {taskArray.map((task) => {
+                            const taskStartDate = dayjs(task.startDate);
+                            const taskEndDate = dayjs(task.endDate);
+
+                            if (
+                              taskStartDate.isBetween(
+                                currentWeekStartDate,
+                                currentWeekStartDate.endOf("week")
+                              ) ||
+                              taskEndDate.isBetween(
+                                currentWeekStartDate,
+                                currentWeekStartDate.endOf("week")
+                              )
+                            ) {
+                              return (
+                                <Typography
+                                  key={task.name}
+                                  sx={{
+                                    border: "1px solid black",
+                                    textAlign: "center",
+                                    backgroundColor: "red",
+                                  }}
+                                >
+                                  {task.name}
+                                  <br />
+                                </Typography>
+                              );
+                            } else {
+                              return (
+                                <Typography
+                                  key={task.name}
+                                  sx={{
+                                    border: "1px solid black",
+                                    textAlign: "center",
+                                    backgroundColor: "transparent",
+                                  }}
+                                >
+                                  empty
+                                </Typography>
+                              );
+                            }
+                          })}
+                        </Box>
+                      </Box>
+                    );
+                  })}
+                </Box>
               </Box>
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateRows: "repeat(7, 1fr)",
-                  gridAutoFlow: "column",
-                }}
-              >
-                {range(weekDayOf1).map((i) => (
-                  <Box
-                    key={i}
-                    sx={{
-                      opacity: "0.5",
-                    }}
-                  >
-                    {dayObjOf1.subtract(weekDayOf1 - i, "day").date()}
-                  </Box>
-                ))}
-                {range(daysInMonth).map((i) => (
-                  <div
-                    className={`day-cell day-cell--in-month${
-                      i + 1 === todayObj.date() &&
-                      thisMonth === todayObj.month() &&
-                      thisYear === todayObj.year()
-                        ? " day-cell--today"
-                        : ""
-                    }`}
-                    key={i}
-                  >
-                    {i + 1}
-                  </div>
-                ))}
-                {range(7 - weekDayOfLast).map((i) => (
-                  <Box
-                    key={i}
-                    sx={{
-                      opacity: "0.5",
-                    }}
-                  >
-                    {dayObjOfLast.add(i + 1, "day").date()}
-                  </Box>
-                ))}
-                <div className="day-container"></div>
-              </Box>
-            </Box>
-          );
-        })}
+            );
+          })}
+        </Box>
       </div>
     </div>
   );
