@@ -3,10 +3,21 @@ import dayjs, { Dayjs } from "dayjs";
 import weekOfYear from "dayjs/plugin/weekOfYear";
 import { Box, Typography } from "@mui/material";
 import isBetween from "dayjs/plugin/isBetween";
+import isoWeek from "dayjs/plugin/isoWeek";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+import updateLocale from "dayjs/plugin/updateLocale";
+
 dayjs.extend(weekOfYear);
 dayjs.extend(isBetween);
-const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-
+dayjs.extend(isoWeek);
+dayjs.extend(customParseFormat);
+dayjs.extend(updateLocale);
+dayjs.updateLocale("custom", {
+  week: {
+    dow: 1, // Monday
+  },
+});
+dayjs.locale("custom");
 function App() {
   const [dayObj, setDayObj] = useState<Dayjs>(dayjs().locale("en"));
 
@@ -26,33 +37,48 @@ function App() {
   const taskArray = [
     {
       name: "BBQ",
-      startDate: "2023-10-10",
-      endDate: "2023-12-30",
+      startDate: "10 November 2023",
+      endDate: "20 November 2023",
     },
     {
       name: "Work",
-      startDate: "2023-11-12",
-      endDate: "2023-11-18",
+      startDate: "07 November 2023",
+      endDate: "18 December 2023",
     },
     {
       name: "Dishes",
-      startDate: "2024-01-14",
-      endDate: "2024-01-18",
+      startDate: "16 December 2023",
+      endDate: "18 January 2024",
     },
   ];
 
-  function calculateWeekNumbersForMonth(month: Dayjs) {
+  function calculateWeekNumbersForMonth(
+    month: dayjs.Dayjs | Date | null | undefined
+  ) {
     const weeks: number[] = [];
     const firstDayOfMonth = dayjs(month).startOf("month");
     const lastDayOfMonth = dayjs(month).endOf("month");
+    let currentDay = firstDayOfMonth;
+    let currentWeekNumber = currentDay.isoWeek();
+    let daysInCurrentWeek = 0;
 
-    let currentWeekStartDate = firstDayOfMonth.startOf("week");
+    while (currentDay.isBefore(lastDayOfMonth)) {
+      daysInCurrentWeek++;
 
-    while (currentWeekStartDate.isBefore(lastDayOfMonth)) {
-      weeks.push(currentWeekStartDate.week());
-      currentWeekStartDate = currentWeekStartDate.add(1, "week");
+      if (currentDay.isoWeek() !== currentWeekNumber) {
+        // Check if the current week has more than 4 days in the current month
+        if (daysInCurrentWeek > 4) {
+          weeks.push(currentWeekNumber);
+        }
+        currentWeekNumber = currentDay.isoWeek();
+        daysInCurrentWeek = 1;
+      }
+      currentDay = currentDay.add(1, "day");
     }
-
+    // Check the last week of the month
+    if (daysInCurrentWeek > 4) {
+      weeks.push(currentWeekNumber);
+    }
     return weeks;
   }
 
@@ -75,6 +101,8 @@ function App() {
           }}
         >
           {months.map((month, index) => {
+            const yearTrack = month.format("YY");
+            const yearNumber = parseInt(yearTrack, 10);
             const weeksInMonth = calculateWeekNumbersForMonth(month);
             return (
               <Box key={index}>
@@ -91,12 +119,9 @@ function App() {
                     display: "flex",
                   }}
                 >
-                  {weeksInMonth.map((weekNumber) => {
-                    const currentWeekStartDate = dayjs(month)
-                      .week(weekNumber)
-                      .startOf("week");
+                  {weeksInMonth.map((weekNumber, index) => {
                     return (
-                      <Box sx={{ flexGrow: "1" }}>
+                      <Box key={index} sx={{ flexGrow: "1" }}>
                         <Box>
                           <Typography
                             sx={{
@@ -109,44 +134,41 @@ function App() {
                           </Typography>
                         </Box>
                         <Box>
-                          {taskArray.map((task) => {
+                          {taskArray.map((task, index) => {
                             const taskStartDate = dayjs(task.startDate);
                             const taskEndDate = dayjs(task.endDate);
-
-                            if (
-                              taskStartDate.isBetween(
-                                currentWeekStartDate,
-                                currentWeekStartDate.endOf("week")
-                              ) ||
-                              taskEndDate.isBetween(
-                                currentWeekStartDate,
-                                currentWeekStartDate.endOf("week")
-                              )
-                            ) {
+                            const startDate = dayjs()
+                              .week(weekNumber)
+                              .year(yearNumber)
+                              .startOf("isoWeek")
+                              .isoWeekday(1)
+                              .format("DD/MM/YY");
+                            const endDate = dayjs()
+                              .week(weekNumber)
+                              .year(yearNumber)
+                              .startOf("isoWeek")
+                              .isoWeekday(7)
+                              .format("DD/MM/YY");
+                            {
                               return (
                                 <Typography
-                                  key={task.name}
+                                  key={index}
                                   sx={{
                                     border: "1px solid black",
                                     textAlign: "center",
-                                    backgroundColor: "red",
                                   }}
                                 >
-                                  {task.name}
+                                  {dayjs(taskStartDate).isBetween(
+                                    startDate,
+                                    endDate
+                                  ) ||
+                                  dayjs(taskEndDate).isBetween(
+                                    startDate,
+                                    endDate
+                                  )
+                                    ? task.name
+                                    : "false"}
                                   <br />
-                                </Typography>
-                              );
-                            } else {
-                              return (
-                                <Typography
-                                  key={task.name}
-                                  sx={{
-                                    border: "1px solid black",
-                                    textAlign: "center",
-                                    backgroundColor: "transparent",
-                                  }}
-                                >
-                                  empty
                                 </Typography>
                               );
                             }
