@@ -1,6 +1,5 @@
 // CalendarHeader.tsx
-import React from "react";
-import dayjs, { Dayjs } from "dayjs";
+import { Dayjs } from "dayjs";
 import { Box, Typography } from "@mui/material";
 
 interface CalendarHeaderProps {
@@ -13,7 +12,7 @@ function CalendarHeader({ month }: CalendarHeaderProps) {
   //   "82C3EC", // February
   //   "green", // March
   // ];
-  const monthIndex = month.month();
+  // const monthIndex = month.month();
   return (
     <Box>
       <Typography

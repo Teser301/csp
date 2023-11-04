@@ -1,5 +1,5 @@
-import React, { FunctionComponent } from "react";
-import dayjs, { Dayjs } from "dayjs";
+import { FunctionComponent } from "react";
+import { Dayjs } from "dayjs";
 import { Box, Typography, Button } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
@@ -14,7 +14,7 @@ const DateNavigation: FunctionComponent<DateNavigationProps> = ({
   handlePrev,
   handleNext,
 }) => {
-  const year = dayObj.year();
+  // const year = dayObj.year();
   const quarter = Math.ceil(dayObj.quarter());
   return (
     <Box

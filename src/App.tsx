@@ -4,6 +4,10 @@ import CalendarHeader from "./components/calendarHeader";
 import TaskList from "./components/taskList";
 import DateNavigation from "./components/dateNavigation";
 import calculateWeekNumbers from "./utils/calcWeekNumber";
+import TaskHandler from "./components/taskHandler";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { Task } from "./types";
 // DayJS imports
 import dayjs, { Dayjs } from "dayjs";
 import weekOfYear from "dayjs/plugin/weekOfYear";
@@ -28,13 +32,13 @@ dayjs.updateLocale("custom", {
 dayjs.locale("custom");
 
 function App() {
-  //Track the current time
-  const [dayObj, setDayObj] = useState<Dayjs>(dayjs().locale("en"));
+  const [dayObj, setDayObj] = useState<Dayjs>(dayjs().locale("en")); // Tracks current day
+  const [tasks, setTasks] = useState<Task[]>([]); // Tracks tasks
 
+  // Handles DateNavigation
   const handlePrev = () => {
     setDayObj(dayObj.subtract(3, "month"));
   };
-
   const handleNext = () => {
     setDayObj(dayObj.add(3, "month"));
   };
@@ -43,69 +47,87 @@ function App() {
   for (let i = 0; i < 3; i++) {
     months.push(dayObj.add(i, "month"));
   }
-
+  // Store Tasks in state
+  const handleTaskAdd = (task: Task) => {
+    // Add the task to your array or perform any other necessary actions.
+    setTasks([...tasks, task]);
+    console.log(tasks);
+  };
   return (
-    <div className="calendar">
-      <DateNavigation
-        dayObj={dayObj}
-        handlePrev={handlePrev}
-        handleNext={handleNext}
-      />
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
-          gap: "10px",
-          maxWidth: "1440px",
-          margin: "0 auto",
-        }}
-      >
-        {months.map((month, index) => {
-          const yearNumber = month.year();
+    <LocalizationProvider dateAdapter={AdapterDayjs}>
+      {tasks.map((task, index) => (
+        <li key={index}>
+          Task Name: {task.name}
+          <br />
+          Start Date: {task.startDate?.format("MM/DD/YYYY")}
+          <br />
+          End Date: {task.endDate?.format("MM/DD/YYYY")}
+        </li>
+      ))}
+      <div className="calendar">
+        <DateNavigation
+          dayObj={dayObj}
+          handlePrev={handlePrev}
+          handleNext={handleNext}
+        />
+        <TaskHandler onTaskAdd={handleTaskAdd} />
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: "10px",
+            maxWidth: "1440px",
+            margin: "0 auto",
+          }}
+        >
+          {months.map((month, index) => {
+            const yearNumber = month.year();
 
-          const weeksInMonth = calculateWeekNumbers(month);
-          return (
-            <Box
-              key={index}
-              sx={{
-                backgroundColor: "white",
-                border: "2px solid black",
-              }}
-            >
-              <CalendarHeader month={month} />
+            const weeksInMonth = calculateWeekNumbers(month);
+            return (
               <Box
+                key={index}
                 sx={{
-                  display: "flex",
+                  backgroundColor: "white",
+                  border: "2px solid black",
                 }}
               >
-                {weeksInMonth.map((weekNumber, index) => {
-                  return (
-                    <Box key={index} sx={{ flexGrow: "1" }}>
-                      <Box>
-                        <Typography
-                          sx={{
-                            border: "1px solid black",
-                            textAlign: "center",
-                          }}
-                          key={weekNumber}
-                        >
-                          {weekNumber}
-                        </Typography>
+                <CalendarHeader month={month} />
+                <Box
+                  sx={{
+                    display: "flex",
+                  }}
+                >
+                  {weeksInMonth.map((weekNumber, index) => {
+                    return (
+                      <Box key={index} sx={{ flexGrow: "1" }}>
+                        <Box>
+                          <Typography
+                            sx={{
+                              border: "1px solid black",
+                              textAlign: "center",
+                            }}
+                            key={weekNumber}
+                          >
+                            {weekNumber}
+                          </Typography>
+                        </Box>
+                        <TaskList
+                          weekNumber={weekNumber}
+                          yearNumber={yearNumber}
+                          month={month}
+                          tasks={tasks}
+                        />
                       </Box>
-                      <TaskList
-                        weekNumber={weekNumber}
-                        yearNumber={yearNumber}
-                        month={month}
-                      />
-                    </Box>
-                  );
-                })}
+                    );
+                  })}
+                </Box>
               </Box>
-            </Box>
-          );
-        })}
-      </Box>
-    </div>
+            );
+          })}
+        </Box>
+      </div>
+    </LocalizationProvider>
   );
 }
 
