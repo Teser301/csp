@@ -1,37 +1,38 @@
-import { Box, Typography, Button } from "@mui/material";
+import * as React from "react";
+import {
+  Box,
+  Typography,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from "@mui/material";
 import dayjs, { Dayjs } from "dayjs";
 import { Task } from "../types";
+
 interface TaskListProps {
   weekNumber: number;
   yearNumber: number;
   month: Dayjs;
-  tasks: Task[]; // Add tasks prop
+  tasks: Task[];
 }
 
-function TaskList({ tasks, weekNumber, yearNumber, month }: TaskListProps) {
-  // const taskArray = [
-  //   {
-  //     name: "BBQ",
-  //     startDate: "12 November 2023",
-  //     endDate: "21 November 2023",
-  //     color: "red",
-  //   },
-  //   {
-  //     name: "Work",
-  //     startDate: "07 November 2023",
-  //     endDate: "18 December 2023",
-  //     color: "blue",
-  //   },
-  //   {
-  //     name: "Dishes",
-  //     startDate: "16 December 2023",
-  //     endDate: "18 March 2024",
-  //     color: "green",
-  //   },
-  // ];
+function TaskList({ tasks, weekNumber, yearNumber }: TaskListProps) {
+  const [open, setOpen] = React.useState(false);
+  const [selectedTask, setSelectedTask] = React.useState<Task | null>(null);
+
+  const handleClick = (task: Task) => {
+    setSelectedTask(task);
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setSelectedTask(null);
+    setOpen(false);
+  };
 
   return (
-    <Box>
+    <Box sx={{ width: "100%", height: "auto" }}>
       {tasks.map((task, taskIndex) => {
         const taskStartDate = dayjs(task.startDate, {
           format: "DD MMMM YYYY",
@@ -66,32 +67,68 @@ function TaskList({ tasks, weekNumber, yearNumber, month }: TaskListProps) {
             date.isSameOrBefore(endDate, "day")
           );
         }) ? (
-          <Box
+          <Button
             key={taskIndex}
             sx={{
-              border: "1px solid black",
-              textAlign: "center",
-              minHeight: "50px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              border: "1px solid gray",
+              padding: 0,
+              backgroundColor: task.color,
+              borderRadius: "0px",
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              width: "100%",
+              height: "100px",
+              color: "#fff",
+              "&:hover": {
+                backgroundColor: "#36454F", // Change background color on hover
+                color: "#fff", // Change text color on hover
+              },
             }}
+            onClick={() => handleClick(task)}
           >
-            <Typography>{task.name}</Typography>
-          </Box>
+            {task.name}
+          </Button>
         ) : (
           <Box
             key={taskIndex}
             sx={{
-              border: "1px solid black",
+              border: "1px solid gray",
+              borderTop: "none",
+              borderBottom: "none",
               textAlign: "center",
-              minHeight: "50px",
+              height: "100px",
             }}
           >
             <Typography>{""}</Typography>
           </Box>
         );
       })}
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        maxWidth="sm" // Set the maximum width of the dialog
+      >
+        {selectedTask && (
+          <div>
+            <DialogTitle
+              sx={{
+                background: "#36454F",
+                height: "50px",
+              }}
+            >
+              {selectedTask.name}
+            </DialogTitle>
+            <DialogContent sx={{ background: "#36454F", padding: "10px" }}>
+              <Typography>
+                {dayjs(selectedTask.startDate).format("DD MMM/YYYY")} -{" "}
+                {dayjs(selectedTask.endDate).format("DD MMM/YYYY")}
+              </Typography>
+            </DialogContent>
+          </div>
+        )}
+      </Dialog>
     </Box>
   );
 }
