@@ -29,29 +29,10 @@ const TashHandler: React.FC<TashHandlerProps> = ({ onTaskAdd }) => {
 
   const handleStartDateChange = (date: dayjs.Dayjs | null) => {
     setTask({ ...task, startDate: date });
-    validateDates(date, task.endDate);
   };
 
   const handleEndDateChange = (date: dayjs.Dayjs | null) => {
     setTask({ ...task, endDate: date });
-    validateDates(task.startDate, date);
-  };
-
-  const validateDates = (
-    startDate: dayjs.Dayjs | null,
-    endDate: dayjs.Dayjs | null
-  ) => {
-    if (startDate && endDate && startDate.isAfter(endDate)) {
-      setErrors({
-        ...errors,
-        date: "End date cannot be before the start date",
-      });
-      setButtonDisabled(true);
-    } else {
-      setErrors({ ...errors, date: "" });
-      setButtonDisabled(false);
-    }
-    checkButtonState();
   };
 
   const generateRandomColor = () => {
@@ -73,30 +54,30 @@ const TashHandler: React.FC<TashHandlerProps> = ({ onTaskAdd }) => {
   };
 
   const addTask = () => {
-    if (
-      !task.name ||
-      !task.startDate ||
-      !task.endDate ||
-      errors.name ||
-      errors.date
-    ) {
-      setErrors({
-        name: task.name ? "" : "Task name is required",
-        date: errors.date || "Date is required",
-      });
-      return;
+    const newErrors: { name: string; date: string } = { name: "", date: "" };
+
+    if (!task.name) {
+      newErrors.name = "Task name is required";
     }
 
-    onTaskAdd(task);
+    if (!task.startDate || !task.endDate) {
+      newErrors.date = "Dates are required";
+    } else if (task.startDate.isAfter(task.endDate)) {
+      newErrors.date = "End date cannot be before the start date";
+    }
 
-    setTask({
-      name: "",
-      startDate: null,
-      endDate: null,
-      color: "", // Reset the color to empty
-    });
-    setErrors({ name: "", date: "" });
-    setButtonDisabled(true);
+    setErrors(newErrors);
+
+    if (!newErrors.name && !newErrors.date) {
+      onTaskAdd(task);
+
+      setTask({
+        name: "",
+        startDate: null,
+        endDate: null,
+        color: "",
+      });
+    }
   };
 
   return (
@@ -110,7 +91,7 @@ const TashHandler: React.FC<TashHandlerProps> = ({ onTaskAdd }) => {
       }}
     >
       {errors.name && <Alert severity="error">{errors.name}</Alert>}
-      {errors.date && <Alert severity="error">{errors.date}</Alert>}
+
       <Box
         sx={{
           display: "flex",
@@ -142,6 +123,7 @@ const TashHandler: React.FC<TashHandlerProps> = ({ onTaskAdd }) => {
           </Typography>
         </Box>
       </Box>
+      {errors.date && <Alert severity="error">{errors.date}</Alert>}
       <Box
         sx={{
           display: "flex",
@@ -163,11 +145,10 @@ const TashHandler: React.FC<TashHandlerProps> = ({ onTaskAdd }) => {
         />
       </Box>
 
-      <Button variant="contained" onClick={addTask} disabled={isButtonDisabled}>
+      <Button variant="contained" onClick={addTask}>
         Add Task
       </Button>
     </Box>
   );
 };
-
 export default TashHandler;
