@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Box, Typography } from "@mui/material";
 import { Task } from "../../types";
-import dayjs from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import TaskAssigned from "./taskAssigned";
 
 interface TaskItemProps {
@@ -10,9 +10,22 @@ interface TaskItemProps {
   task: Task;
   weekNumber: number;
   yearNumber: number;
+  taskIndex: number;
+  onUpdateLocalStorageKey: (
+    newTaskName: string,
+    taskID: number,
+    newStartDate: Dayjs | null,
+    newEndDate: Dayjs | null
+  ) => void; // Define the function prop
 }
 
-function TaskItem({ task, weekNumber, yearNumber }: TaskItemProps) {
+function TaskItem({
+  task,
+  weekNumber,
+  yearNumber,
+  taskIndex,
+  onUpdateLocalStorageKey,
+}: TaskItemProps) {
   // Reuse styles
   const borderStyles: React.CSSProperties = {
     border: "1px solid gray",
@@ -56,7 +69,12 @@ function TaskItem({ task, weekNumber, yearNumber }: TaskItemProps) {
   }) ? (
     // If found
     <>
-      <TaskAssigned styles={borderStyles} task={task} />
+      <TaskAssigned
+        styles={borderStyles}
+        task={task}
+        taskIndex={taskIndex}
+        onTaskNameChange={onUpdateLocalStorageKey}
+      />
     </>
   ) : (
     // If not

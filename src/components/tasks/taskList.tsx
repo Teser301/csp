@@ -1,7 +1,7 @@
 // This component handles mapping tasks
 import React, { useState, useEffect } from "react";
 import { Box } from "@mui/material";
-import { Dayjs } from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import { Task } from "../../types";
 import TaskItem from "./taskItem";
 interface TaskListProps {
@@ -12,14 +12,44 @@ interface TaskListProps {
 }
 
 function TaskList({ tasks, weekNumber, yearNumber }: TaskListProps) {
+  const storedTasks = JSON.parse(localStorage.getItem("tasks") || "[]");
+
+  // Define a function to update the local storage key
+  const updateLocalStorageKey = (
+    newTaskName: string,
+    TaskID: number,
+    newStartDate: Dayjs | null,
+    newEndDate: Dayjs | null
+  ): void => {
+    console.log("strogin");
+    const changeStartDate = dayjs(newStartDate);
+    const changeEndDate = dayjs(newEndDate);
+    const updatedTasks = JSON.parse(localStorage.getItem("tasks") || "[]");
+    // Update the 'name' property of the selected task
+    if (TaskID >= 0 && TaskID < updatedTasks.length) {
+      updatedTasks[TaskID].name = newTaskName;
+      updatedTasks[TaskID].startDate = changeStartDate;
+      updatedTasks[TaskID].endDate = changeEndDate;
+      localStorage.setItem("tasks", JSON.stringify(updatedTasks));
+    }
+  };
   return (
     <Box sx={{ width: "100%", height: "auto" }}>
-      {tasks.map((task, taskIndex) => (
+      {storedTasks.map((task: Task, taskIndex: number) => (
         <TaskItem
           key={taskIndex}
           task={task}
           weekNumber={weekNumber}
           yearNumber={yearNumber}
+          taskIndex={taskIndex}
+          onUpdateLocalStorageKey={(
+            newTaskName,
+            TaskID,
+            newStartDate,
+            newEndDate
+          ) =>
+            updateLocalStorageKey(newTaskName, TaskID, newStartDate, newEndDate)
+          }
         />
       ))}
     </Box>

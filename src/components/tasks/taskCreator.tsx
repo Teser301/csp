@@ -1,5 +1,5 @@
 // This component creates tasks
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Box, Typography, Button, TextField, Alert } from "@mui/material";
 import dayjs from "dayjs";
 import { MobileDatePicker } from "@mui/x-date-pickers/MobileDatePicker";
@@ -54,6 +54,11 @@ function TaskHandler({ onTaskAdd }: taskHandlerProps) {
 
     if (!newErrors.name && !newErrors.date) {
       onTaskAdd(task);
+      // Save the tasks array to localStorage whenever it changes
+      // Save the task to localStorage
+      const savedTasks = JSON.parse(localStorage.getItem("tasks") || "[]");
+      savedTasks.push(task);
+      localStorage.setItem("tasks", JSON.stringify(savedTasks));
 
       setTask({
         name: "",
