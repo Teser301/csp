@@ -6,8 +6,6 @@ import {
   Button,
   Popover,
   Dialog,
-  DialogContent,
-  DialogTitle,
   TextField,
 } from "@mui/material";
 import { Task } from "../../types";

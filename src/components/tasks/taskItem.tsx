@@ -1,5 +1,5 @@
 // This component handles task generation
-import React, { useState } from "react";
+import React from "react";
 import { Box, Typography } from "@mui/material";
 import { Task } from "../../types";
 import dayjs, { Dayjs } from "dayjs";

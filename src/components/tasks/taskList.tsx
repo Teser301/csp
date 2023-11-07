@@ -1,5 +1,4 @@
 // This component handles mapping tasks
-import React, { useState, useEffect } from "react";
 import { Box } from "@mui/material";
 import dayjs, { Dayjs } from "dayjs";
 import { Task } from "../../types";

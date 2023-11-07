@@ -13,6 +13,7 @@ import quarterOfYear from "dayjs/plugin/quarterOfYear";
 import CalendarNavigation from "./components/calendar/calendarNavigation";
 import CalendarGrid from "./components/calendar/calendarGrid";
 import TaskCreator from "./components/tasks/taskCreator";
+import "dayjs/locale/en-gb";
 // Extend Day.js plugins
 dayjs.extend(quarterOfYear);
 dayjs.extend(weekOfYear);
@@ -54,7 +55,7 @@ function App() {
     setTasks([...tasks, task]);
   };
   return (
-    <LocalizationProvider dateAdapter={AdapterDayjs}>
+    <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en-gb">
       <TaskCreator onTaskAdd={handleTaskAdd} />
       <CalendarNavigation
         dayObj={dayObj}
